@@ -18,6 +18,9 @@ export const daySchema = z.object({
   date: z.date(),
   title: z.string().nullable(),
   userId: z.string().cuid(),
+  pinned: z.boolean(),
+  pinnedAt: z.date().nullable(),
+  pinnedOrder: z.number().int().nullable(),
 });
 
 export const createDaySchema = z.object({
@@ -27,7 +30,15 @@ export const createDaySchema = z.object({
 });
 
 export const updateDaySchema = z.object({
-  title: z.string().optional(),
+  title: z.string().min(1, "Title cannot be empty").max(100, "Title too long").optional(),
+});
+
+export const pinDaySchema = z.object({
+  pinned: z.boolean(),
+});
+
+export const reorderPinnedDaySchema = z.object({
+  pinnedOrder: z.number().int().min(0),
 });
 
 // Task validators

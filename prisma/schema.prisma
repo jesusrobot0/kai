@@ -31,17 +31,21 @@ model User {
 
 // Day model - Journal entries for each day
 model Day {
-  id        String   @id @default(cuid())
-  date      DateTime @unique @db.Date
-  title     String?
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String    @id @default(cuid())
+  date        DateTime  @unique @db.Date
+  title       String?
+  userId      String
+  pinned      Boolean   @default(false)
+  pinnedAt    DateTime?
+  pinnedOrder Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   tasks Task[]
 
   @@index([userId, date])
+  @@index([userId, pinned])
   @@map("days")
 }
 
