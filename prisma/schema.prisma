@@ -1,0 +1,156 @@
+// Kai - Development Journal App
+// Database schema for tracking days, tasks, projects, categories, time entries, and annotations
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// User model - For future Clerk authentication integration
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  days        Day[]
+  tasks       Task[]
+  projects    Project[]
+  categories  Category[]
+  timeEntries TimeEntry[]
+  annotations Annotation[]
+
+  @@map("users")
+}
+
+// Day model - Journal entries for each day
+model Day {
+  id        String   @id @default(cuid())
+  date      DateTime @unique @db.Date
+  title     String?
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks Task[]
+
+  @@index([userId, date])
+  @@map("days")
+}
+
+// Project model - Projects that can be tagged with @project
+model Project {
+  id        String   @id @default(cuid())
+  name      String
+  color     String   @default("#6366f1") // Default indigo color
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks Task[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("projects")
+}
+
+// Category model - Categories that can be tagged with #category
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  color     String   @default("#8b5cf6") // Default purple color
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks TaskCategory[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("categories")
+}
+
+// Task model - Individual tasks within a day
+model Task {
+  id        String   @id @default(cuid())
+  title     String
+  completed Boolean  @default(false)
+  order     Int      @default(0)
+  dayId     String
+  projectId String?
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  day         Day            @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  project     Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  categories  TaskCategory[]
+  timeEntries TimeEntry[]
+  annotations Annotation[]
+
+  @@index([dayId])
+  @@index([userId])
+  @@index([projectId])
+  @@map("tasks")
+}
+
+// TaskCategory model - Many-to-many relationship between tasks and categories
+model TaskCategory {
+  taskId     String
+  categoryId String
+  assignedAt DateTime @default(now())
+
+  task     Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, categoryId])
+  @@index([taskId])
+  @@index([categoryId])
+  @@map("task_categories")
+}
+
+// TimeEntry model - Time tracking for tasks
+model TimeEntry {
+  id        String    @id @default(cuid())
+  startTime DateTime
+  endTime   DateTime?
+  duration  Int?      // Duration in seconds (null if currently running)
+  taskId    String
+  userId    String
+  createdAt DateTime  @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([userId])
+  @@index([startTime])
+  @@map("time_entries")
+}
+
+// Annotation model - Notes/messages related to tasks
+model Annotation {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  taskId    String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([userId])
+  @@map("annotations")
+}
