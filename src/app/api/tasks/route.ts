@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { TaskService } from "@/services/task.service";
 import { createTaskSchema } from "@/validators";
+import { DEMO_USER_ID } from "@/lib/constants";
 
 // POST /api/tasks - Create a new task
 export async function POST(req: NextRequest) {
@@ -8,7 +9,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     // TODO: Get userId from auth session
-    const userId = "temp-user-id";
+    const userId = DEMO_USER_ID;
 
     const validatedData = createTaskSchema.parse({ ...body, userId });
 

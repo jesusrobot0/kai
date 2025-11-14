@@ -1,8 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Day } from "@/types";
+import { DEMO_USER_ID } from "@/lib/constants";
 
 // TODO: Replace with actual user ID from auth
-const TEMP_USER_ID = "temp-user-id";
+const TEMP_USER_ID = DEMO_USER_ID;
 
 // Query keys
 export const daysKeys = {

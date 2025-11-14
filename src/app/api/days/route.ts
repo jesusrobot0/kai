@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDaysByUserId, createDay } from "@/services/day.service";
 import { createDaySchema } from "@/validators";
+import { DEMO_USER_ID } from "@/lib/constants";
 
 // GET /api/days - Get all days for a user
 export async function GET(req: NextRequest) {
   try {
     // TODO: Get userId from auth session
-    const userId = "temp-user-id";
+    const userId = DEMO_USER_ID;
 
     const days = await getDaysByUserId(userId);
     return NextResponse.json({ success: true, data: days });
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     // TODO: Get userId from auth session
-    const userId = "temp-user-id";
+    const userId = DEMO_USER_ID;
 
     const validatedData = createDaySchema.parse({ ...body, userId });
 
