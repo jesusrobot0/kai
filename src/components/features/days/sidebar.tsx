@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   DndContext,
   closestCenter,
@@ -103,7 +104,12 @@ export function Sidebar() {
 
   if (isCollapsed) {
     return (
-      <aside className="h-screen w-[70px] bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 flex flex-col">
+      <motion.aside
+        initial={false}
+        animate={{ width: 60 }}
+        transition={{ duration: 0.3, ease: [0, 0, 0.2, 1] }}
+        className="h-screen bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 flex flex-col"
+      >
         {/* Header */}
         <div className="h-14 flex items-center justify-center border-b border-zinc-200 dark:border-zinc-800">
           <button
@@ -144,12 +150,17 @@ export function Sidebar() {
           open={deleteModalOpen}
           onOpenChange={setDeleteModalOpen}
         />
-      </aside>
+      </motion.aside>
     );
   }
 
   return (
-    <aside className="h-screen w-[420px] bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 flex flex-col">
+    <motion.aside
+      initial={false}
+      animate={{ width: 320 }}
+      transition={{ duration: 0.3, ease: [0, 0, 0.2, 1] }}
+      className="h-screen bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 flex flex-col"
+    >
       {/* Header */}
       <div className="h-14 flex items-center justify-between px-4 border-b border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center gap-2">
@@ -206,36 +217,47 @@ export function Sidebar() {
                 className="w-full flex items-center justify-between px-2 py-1.5 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
               >
                 <span>ANCLADOS</span>
-                {pinnedSectionCollapsed ? (
+                <motion.div
+                  animate={{ rotate: pinnedSectionCollapsed ? 0 : 180 }}
+                  transition={{ duration: 0.2, ease: [0, 0, 0.2, 1] }}
+                >
                   <ChevronDown className="w-3.5 h-3.5" />
-                ) : (
-                  <ChevronUp className="w-3.5 h-3.5" />
-                )}
+                </motion.div>
               </button>
 
-              {!pinnedSectionCollapsed && (
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
-                >
-                  <SortableContext
-                    items={pinnedDays.map((d) => d.id)}
-                    strategy={verticalListSortingStrategy}
+              <AnimatePresence initial={false}>
+                {!pinnedSectionCollapsed && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: [0, 0, 0.2, 1] }}
+                    style={{ overflow: "hidden" }}
                   >
-                    <div className="mt-1 space-y-1">
-                      {pinnedDays.map((day) => (
-                        <DayItem
-                          key={day.id}
-                          day={day}
-                          isPinned
-                          onDelete={() => handleDelete(day)}
-                        />
-                      ))}
-                    </div>
-                  </SortableContext>
-                </DndContext>
-              )}
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={pinnedDays.map((d) => d.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <div className="mt-1 space-y-1">
+                          {pinnedDays.map((day) => (
+                            <DayItem
+                              key={day.id}
+                              day={day}
+                              isPinned
+                              onDelete={() => handleDelete(day)}
+                            />
+                          ))}
+                        </div>
+                      </SortableContext>
+                    </DndContext>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )}
 
@@ -271,6 +293,6 @@ export function Sidebar() {
         open={deleteModalOpen}
         onOpenChange={setDeleteModalOpen}
       />
-    </aside>
+    </motion.aside>
   );
 }
