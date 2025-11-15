@@ -17,8 +17,8 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import {
-  ChevronLeft,
-  ChevronRight,
+  PanelLeft,
+  PanelRight,
   ChevronDown,
   ChevronUp,
   Plus,
@@ -112,13 +112,15 @@ export function Sidebar() {
       >
         {/* Header */}
         <div className="h-14 flex items-center justify-center border-b border-zinc-200 dark:border-zinc-800">
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
             onClick={toggleCollapse}
-            className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
             aria-label="Expandir sidebar"
           >
-            <ChevronRight className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
-          </button>
+            <PanelRight className="w-5 h-5" />
+          </Button>
         </div>
 
         {/* Content */}
@@ -174,7 +176,7 @@ export function Sidebar() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                variant="ghost"
+                variant="default"
                 size="icon"
                 className="h-8 w-8"
                 aria-label="Crear día"
@@ -201,7 +203,7 @@ export function Sidebar() {
             onClick={toggleCollapse}
             aria-label="Colapsar sidebar"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <PanelLeft className="w-4 h-4" />
           </Button>
         </div>
       </div>

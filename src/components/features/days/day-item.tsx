@@ -104,12 +104,15 @@ export function DayItem({ day, isPinned = false, onDelete }: DayItemProps) {
         className={cn(
           "group relative h-10 flex items-center justify-center cursor-pointer",
           "rounded-md transition-all duration-200",
-          "hover:bg-zinc-100 dark:hover:bg-zinc-800",
-          isSelected && "bg-zinc-200 dark:bg-zinc-700",
+          "hover:bg-accent",
+          isSelected && "bg-accent border-l-2 border-primary",
           isDragging && "opacity-50"
         )}
       >
-        <div className="w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-500" />
+        <div className={cn(
+          "w-2 h-2 rounded-full transition-colors",
+          isSelected ? "bg-primary" : "bg-muted-foreground"
+        )} />
       </div>
     );
   }
@@ -122,8 +125,8 @@ export function DayItem({ day, isPinned = false, onDelete }: DayItemProps) {
       className={cn(
         "group relative h-10 flex items-center gap-2 px-3 cursor-pointer",
         "rounded-md transition-all duration-200",
-        "hover:bg-zinc-100 dark:hover:bg-zinc-800",
-        isSelected && "bg-zinc-200 dark:bg-zinc-700",
+        "hover:bg-accent",
+        isSelected && "bg-accent border-l-2 border-primary",
         isDragging && "opacity-50"
       )}
     >
@@ -133,7 +136,7 @@ export function DayItem({ day, isPinned = false, onDelete }: DayItemProps) {
           {...listeners}
           className="cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
         >
-          <GripVertical className="w-4 h-4 text-zinc-400" />
+          <GripVertical className="w-4 h-4 text-muted-foreground" />
         </div>
       )}
 
@@ -147,14 +150,17 @@ export function DayItem({ day, isPinned = false, onDelete }: DayItemProps) {
             onBlur={handleSave}
             onKeyDown={handleKeyDown}
             className={cn(
-              "w-full px-2 py-1 text-sm bg-white dark:bg-zinc-900",
-              "border border-zinc-300 dark:border-zinc-600 rounded",
-              "focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-500"
+              "w-full px-2 py-1 text-sm bg-background",
+              "border border-input rounded",
+              "focus:outline-none focus:ring-2 focus:ring-ring"
             )}
             maxLength={100}
           />
         ) : (
-          <p className="text-sm text-zinc-900 dark:text-zinc-100 truncate">
+          <p className={cn(
+            "text-sm truncate transition-colors",
+            isSelected ? "text-primary font-medium" : "text-foreground"
+          )}>
             {displayTitle}
           </p>
         )}

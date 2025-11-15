@@ -42,22 +42,22 @@ export function DayItemActions({
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 translate-x-5 group-hover:translate-x-0 transition-all duration-150 ease-out">
         <Tooltip>
           <TooltipTrigger asChild>
             <button
               onClick={handlePin}
               className={cn(
-                "p-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-600",
+                "p-1 rounded hover:bg-accent",
                 "transition-colors",
-                isPinned && "text-zinc-900 dark:text-zinc-100"
+                isPinned && "text-primary"
               )}
               aria-label={isPinned ? "Desanclar" : "Anclar"}
             >
               <Pin
                 className={cn(
                   "w-3.5 h-3.5",
-                  isPinned ? "fill-current" : "text-zinc-500 dark:text-zinc-400"
+                  isPinned ? "fill-current" : "text-muted-foreground"
                 )}
               />
             </button>
@@ -71,10 +71,10 @@ export function DayItemActions({
           <TooltipTrigger asChild>
             <button
               onClick={handleEdit}
-              className="p-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
+              className="p-1 rounded hover:bg-accent transition-colors"
               aria-label="Editar"
             >
-              <Edit2 className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
+              <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
             </button>
           </TooltipTrigger>
           <TooltipContent>
@@ -89,7 +89,7 @@ export function DayItemActions({
               className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
               aria-label="Eliminar"
             >
-              <Trash2 className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400" />
+              <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-red-600 dark:hover:text-red-400" />
             </button>
           </TooltipTrigger>
           <TooltipContent>
