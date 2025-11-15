@@ -63,7 +63,7 @@ export function DayItemActions({
               onClick={handlePin}
               className={cn(
                 "p-1 rounded hover:bg-accent",
-                "transition-colors",
+                "transition-colors cursor-pointer",
                 isPinned && "text-primary"
               )}
               aria-label={isPinned ? "Desanclar" : "Anclar"}
@@ -85,7 +85,7 @@ export function DayItemActions({
           <TooltipTrigger asChild>
             <button
               onClick={handleEdit}
-              className="p-1 rounded hover:bg-accent transition-colors"
+              className="p-1 rounded hover:bg-accent transition-colors cursor-pointer"
               aria-label="Editar"
             >
               <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
@@ -100,7 +100,7 @@ export function DayItemActions({
           <TooltipTrigger asChild>
             <button
               onClick={handleDelete}
-              className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+              className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors cursor-pointer"
               aria-label="Eliminar"
             >
               <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-red-600 dark:hover:text-red-400" />

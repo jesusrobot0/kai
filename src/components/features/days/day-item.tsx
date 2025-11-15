@@ -155,14 +155,14 @@ export function DayItem({ day, isPinned = false, onDelete }: DayItemProps) {
           <div className="flex items-center gap-1">
             <button
               onClick={handleCancel}
-              className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+              className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors cursor-pointer"
               aria-label="Cancelar"
             >
               <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-red-600 dark:hover:text-red-400" />
             </button>
             <button
               onClick={handleSave}
-              className="p-1 rounded hover:bg-primary/10 transition-colors"
+              className="p-1 rounded hover:bg-primary/10 transition-colors cursor-pointer"
               aria-label="Guardar"
             >
               <Check className="w-3.5 h-3.5 text-primary" />
