@@ -1,9 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { GripVertical } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -28,23 +25,6 @@ export function DayItem({ day, isPinned = false, onDelete }: DayItemProps) {
   const isCollapsed = useSidebarStore((state) => state.isCollapsed);
 
   const updateDay = useUpdateDay();
-
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: day.id,
-    disabled: !isPinned,
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
 
   const isSelected = selectedDayId === day.id;
   const displayTitle = day.title || format(new Date(day.date), "EEEE, d 'de' MMMM", { locale: es });
@@ -98,15 +78,12 @@ export function DayItem({ day, isPinned = false, onDelete }: DayItemProps) {
   if (isCollapsed) {
     return (
       <div
-        ref={setNodeRef}
-        style={style}
         onClick={handleClick}
         className={cn(
           "group relative h-10 flex items-center justify-center cursor-pointer",
           "rounded-md transition-all duration-200",
           "hover:bg-accent",
-          isSelected && "bg-accent border-l-2 border-primary",
-          isDragging && "opacity-50"
+          isSelected && "bg-accent border-l-2 border-primary"
         )}
       >
         <div className={cn(
@@ -119,27 +96,14 @@ export function DayItem({ day, isPinned = false, onDelete }: DayItemProps) {
 
   return (
     <div
-      ref={setNodeRef}
-      style={style}
       onClick={handleClick}
       className={cn(
         "group relative h-10 flex items-center gap-2 px-3 cursor-pointer",
         "rounded-md transition-all duration-200",
         "hover:bg-accent",
-        isSelected && "bg-accent border-l-2 border-primary",
-        isDragging && "opacity-50"
+        isSelected && "bg-accent border-l-2 border-primary"
       )}
     >
-      {isPinned && (
-        <div
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          <GripVertical className="w-4 h-4 text-muted-foreground" />
-        </div>
-      )}
-
       <div className="flex-1 min-w-0">
         {isEditing ? (
           <input

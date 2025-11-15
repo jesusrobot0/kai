@@ -3,20 +3,6 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import {
   PanelLeft,
   PanelRight,
   ChevronDown,
@@ -53,18 +39,15 @@ export function Sidebar() {
   const { data: days = [], isLoading } = useDays();
   const createDay = useCreateDay();
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
   const pinnedDays = useMemo(
     () =>
       days
         .filter((day) => day.pinned)
-        .sort((a, b) => (a.pinnedOrder || 0) - (b.pinnedOrder || 0)),
+        .sort((a, b) => {
+          // Sort by pinnedAt descending (most recent first)
+          if (!a.pinnedAt || !b.pinnedAt) return 0;
+          return new Date(b.pinnedAt).getTime() - new Date(a.pinnedAt).getTime();
+        }),
     [days]
   );
 
@@ -77,14 +60,6 @@ export function Sidebar() {
     () => groupDays(unpinnedDays),
     [unpinnedDays]
   );
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    // TODO: Implement reorder logic when we have the API endpoint
-    console.log("Reorder:", active.id, "to", over.id);
-  };
 
   const handleDelete = (day: Day) => {
     setDayToDelete(day);
@@ -236,27 +211,16 @@ export function Sidebar() {
                     transition={{ duration: 0.2, ease: [0, 0, 0.2, 1] }}
                     style={{ overflow: "hidden" }}
                   >
-                    <DndContext
-                      sensors={sensors}
-                      collisionDetection={closestCenter}
-                      onDragEnd={handleDragEnd}
-                    >
-                      <SortableContext
-                        items={pinnedDays.map((d) => d.id)}
-                        strategy={verticalListSortingStrategy}
-                      >
-                        <div className="mt-1 space-y-1">
-                          {pinnedDays.map((day) => (
-                            <DayItem
-                              key={day.id}
-                              day={day}
-                              isPinned
-                              onDelete={() => handleDelete(day)}
-                            />
-                          ))}
-                        </div>
-                      </SortableContext>
-                    </DndContext>
+                    <div className="mt-1 space-y-1">
+                      {pinnedDays.map((day) => (
+                        <DayItem
+                          key={day.id}
+                          day={day}
+                          isPinned
+                          onDelete={() => handleDelete(day)}
+                        />
+                      ))}
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

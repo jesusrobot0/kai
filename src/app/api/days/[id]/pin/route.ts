@@ -16,33 +16,11 @@ export async function PATCH(
     // TODO: Get userId from auth session
     const userId = DEMO_USER_ID;
 
-    let pinnedOrder: number | null = null;
-
-    if (pinned) {
-      // Find the highest pinnedOrder for this user's pinned days
-      const maxPinnedDay = await db.day.findFirst({
-        where: {
-          userId,
-          pinned: true,
-        },
-        orderBy: {
-          pinnedOrder: "desc",
-        },
-        select: {
-          pinnedOrder: true,
-        },
-      });
-
-      // Assign next sequential number (0 if no pinned days exist)
-      pinnedOrder = (maxPinnedDay?.pinnedOrder ?? -1) + 1;
-    }
-
     const day = await db.day.update({
       where: { id },
       data: {
         pinned,
         pinnedAt: pinned ? new Date() : null,
-        pinnedOrder,
       },
     });
 

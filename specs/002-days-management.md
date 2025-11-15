@@ -86,7 +86,7 @@ Mobile:
 **Características**:
 - **Sección colapsable** con chevron (▼/▶)
 - **Contador** de days fijados [3]
-- **Drag & drop** para reordenar (manual order)
+- **Ordenamiento** por fecha de fijado (más reciente primero)
 - **Pin icon** 📌 visible siempre
 - **Actions menu** [⋮] al hover
 
@@ -365,13 +365,10 @@ Body: { pinned: true }
 2. API call para toggle `pinned`
 3. Si `pinned = true`:
    - Day se mueve a sección "Pinned"
-   - `pinnedAt` = now (para ordering inicial)
+   - `pinnedAt` = now (para ordering)
+   - Days se ordenan por `pinnedAt` descendente (más reciente primero)
 4. Si `pinned = false`:
    - Day vuelve a su grupo cronológico
-
-**Drag & Drop en Pinned**:
-- Usar `@dnd-kit/core` (React)
-- Mantener orden custom en campo `pinnedOrder` (int)
 
 ---
 
@@ -438,10 +435,6 @@ DELETE /api/days/[id]
 PATCH /api/days/[id]/pin
   Body: { pinned: boolean }
   Response: { success: true, data: Day }
-
-PATCH /api/days/[id]/order
-  Body: { pinnedOrder: number }
-  Response: { success: true, data: Day }
 ```
 
 ---
@@ -477,7 +470,6 @@ npx shadcn@latest add scroll-area
 ### Librerías Adicionales
 
 ```bash
-npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
 npm install date-fns  # Para manejo de fechas
 ```
 
@@ -654,27 +646,6 @@ export function groupDays(days: Day[]): Record<string, Day[]> {
 >
   {/* Sidebar content */}
 </motion.div>
-```
-
-### Drag & Drop (Pinned Days)
-
-```typescript
-import { DndContext, closestCenter } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-
-function PinnedDaysSection({ days }: Props) {
-  const handleDragEnd = (event) => {
-    // Update pinnedOrder en DB
-  };
-
-  return (
-    <DndContext onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
-      <SortableContext items={days} strategy={verticalListSortingStrategy}>
-        {days.map(day => <SortableDayItem key={day.id} day={day} />)}
-      </SortableContext>
-    </DndContext>
-  );
-}
 ```
 
 ---

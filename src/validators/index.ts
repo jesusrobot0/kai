@@ -20,7 +20,6 @@ export const daySchema = z.object({
   userId: z.string().cuid(),
   pinned: z.boolean(),
   pinnedAt: z.date().nullable(),
-  pinnedOrder: z.number().int().nullable(),
 });
 
 export const createDaySchema = z.object({
@@ -35,10 +34,6 @@ export const updateDaySchema = z.object({
 
 export const pinDaySchema = z.object({
   pinned: z.boolean(),
-});
-
-export const reorderPinnedDaySchema = z.object({
-  pinnedOrder: z.number().int().min(0),
 });
 
 // Task validators

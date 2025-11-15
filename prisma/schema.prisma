@@ -37,7 +37,6 @@ model Day {
   userId      String
   pinned      Boolean   @default(false)
   pinnedAt    DateTime?
-  pinnedOrder Int?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
