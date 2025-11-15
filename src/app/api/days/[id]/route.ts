@@ -1,6 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import { updateDay, deleteDay } from "@/services/day.service";
+import { getDayById, updateDay, deleteDay } from "@/services/day.service";
 import { updateDaySchema } from "@/validators";
+
+// GET /api/days/[id] - Get a day by ID
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const day = await getDayById(id);
+
+    if (!day) {
+      return NextResponse.json(
+        { success: false, error: "Day not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ success: true, data: day });
+  } catch (error) {
+    console.error("Error fetching day:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to fetch day" },
+      { status: 500 }
+    );
+  }
+}
 
 // PATCH /api/days/[id] - Update a day
 export async function PATCH(

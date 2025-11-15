@@ -1,5 +1,6 @@
 "use client";
 
+import { motion, AnimatePresence } from "framer-motion";
 import { Pin, Edit2, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePinDay } from "@/hooks/use-days";
@@ -13,6 +14,7 @@ import {
 interface DayItemActionsProps {
   dayId: string;
   isPinned: boolean;
+  isHovered: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }
@@ -20,6 +22,7 @@ interface DayItemActionsProps {
 export function DayItemActions({
   dayId,
   isPinned,
+  isHovered,
   onEdit,
   onDelete,
 }: DayItemActionsProps) {
@@ -42,7 +45,18 @@ export function DayItemActions({
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 translate-x-5 group-hover:translate-x-0 transition-all duration-150 ease-out">
+      <AnimatePresence>
+        {isHovered && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{
+              duration: 0.15,
+              ease: [0, 0, 0.2, 1],
+            }}
+            className="flex items-center gap-1"
+          >
         <Tooltip>
           <TooltipTrigger asChild>
             <button
@@ -96,7 +110,9 @@ export function DayItemActions({
             <p>Eliminar</p>
           </TooltipContent>
         </Tooltip>
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </TooltipProvider>
   );
 }

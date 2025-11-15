@@ -27,6 +27,20 @@ export function useDays() {
   });
 }
 
+// Fetch single day
+export function useDay(id: string | null) {
+  return useQuery({
+    queryKey: daysKeys.detail(id!),
+    queryFn: async () => {
+      const res = await fetch(`/api/days/${id}`);
+      if (!res.ok) throw new Error("Failed to fetch day");
+      const data = await res.json();
+      return data.data as Day;
+    },
+    enabled: !!id,
+  });
+}
+
 // Create day
 export function useCreateDay() {
   const queryClient = useQueryClient();

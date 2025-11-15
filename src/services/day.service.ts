@@ -17,6 +17,22 @@ export async function getDaysByUserId(userId: string) {
   });
 }
 
+export async function getDayById(id: string) {
+  return db.day.findUnique({
+    where: { id },
+    include: {
+      tasks: {
+        include: {
+          project: true,
+          categories: { include: { category: true } },
+          timeEntries: true,
+        },
+        orderBy: { order: "asc" },
+      },
+    },
+  });
+}
+
 export async function getDayByDate(userId: string, date: Date) {
   return db.day.findFirst({
     where: {
