@@ -39,47 +39,87 @@ Fundamentos de diseño visual y UX para **Kai**. El estilo visual está inspirad
 
 ## Sistema de Color
 
-### Paleta Base (Zinc Theme)
+### Color Space: OKLCH
+
+El proyecto usa **OKLCH** (Oklab LCH) en lugar de HSL por sus ventajas:
+- Perceptualmente uniforme (cambios numéricos = cambios visuales consistentes)
+- Gamut más amplio (colores más vibrantes sin saturación)
+- Mejor para accesibilidad (contraste predecible)
+
+Formato: `oklch(lightness chroma hue)`
+- Lightness: 0-1 (0 = negro, 1 = blanco)
+- Chroma: 0-0.4 (intensidad de color)
+- Hue: 0-360 (matiz en grados)
+
+### Paleta Base (Zinc + Verde)
 
 ```css
-/* Backgrounds */
---background: 0 0% 100%;           /* White */
---card: 0 0% 100%;
---popover: 0 0% 100%;
+/* Light Mode */
+:root {
+  /* Backgrounds */
+  --background: oklch(1 0 0);                    /* White */
+  --card: oklch(1 0 0);
+  --popover: oklch(1 0 0);
 
-/* Foregrounds */
---foreground: 240 10% 3.9%;        /* Almost black */
---card-foreground: 240 10% 3.9%;
---popover-foreground: 240 10% 3.9%;
+  /* Foregrounds */
+  --foreground: oklch(0.141 0.005 285.823);      /* Almost black */
+  --card-foreground: oklch(0.141 0.005 285.823);
+  --popover-foreground: oklch(0.141 0.005 285.823);
 
-/* Grays (Zinc scale) */
---muted: 240 4.8% 95.9%;           /* Light gray */
---muted-foreground: 240 3.8% 46.1%; /* Medium gray */
+  /* Grays (Zinc scale) */
+  --muted: oklch(0.967 0.001 286.375);           /* Light gray */
+  --muted-foreground: oklch(0.552 0.016 285.938); /* Medium gray */
 
-/* Borders & Inputs */
---border: 240 5.9% 90%;            /* Subtle border */
---input: 240 5.9% 90%;
---ring: 240 5.9% 10%;              /* Focus ring */
+  /* Borders & Inputs */
+  --border: oklch(0.92 0.004 286.32);            /* Subtle border */
+  --input: oklch(0.92 0.004 286.32);
 
-/* Primary (Indigo/Blue) */
---primary: 240 5.9% 10%;
---primary-foreground: 0 0% 98%;
+  /* Primary (Verde profesional - hue 145°) */
+  --primary: oklch(0.50 0.18 145);               /* Medium green */
+  --primary-foreground: oklch(0.985 0 0);        /* White */
+  --ring: oklch(0.50 0.18 145);                  /* Focus ring */
 
-/* Accent (Soft purple) */
---accent: 240 4.8% 95.9%;
---accent-foreground: 240 5.9% 10%;
+  /* Accent (Verde suave para hover) */
+  --accent: oklch(0.96 0.06 145);                /* Very light green */
+  --accent-foreground: oklch(0.35 0.15 145);     /* Dark green */
 
-/* Semantic Colors */
---destructive: 0 84.2% 60.2%;      /* Red */
---destructive-foreground: 0 0% 98%;
+  /* Semantic Colors */
+  --destructive: oklch(0.577 0.245 27.325);      /* Red */
+  --destructive-foreground: oklch(0.985 0 0);    /* White */
+}
 ```
 
-### Dark Mode (Futuro)
+### Dark Mode
 
 ```css
---background: 240 10% 3.9%;
---foreground: 0 0% 98%;
-/* ... resto de variables invertidas */
+.dark {
+  /* Backgrounds */
+  --background: oklch(0.141 0.005 285.823);      /* Almost black */
+  --foreground: oklch(0.985 0 0);                /* White */
+  --card: oklch(0.21 0.006 285.885);
+  --card-foreground: oklch(0.985 0 0);
+
+  /* Grays (Zinc scale) */
+  --muted: oklch(0.274 0.006 286.033);           /* Dark gray */
+  --muted-foreground: oklch(0.705 0.015 286.067); /* Light gray */
+
+  /* Borders & Inputs */
+  --border: oklch(1 0 0 / 10%);                  /* Subtle border */
+  --input: oklch(1 0 0 / 15%);
+
+  /* Primary (Verde brillante) */
+  --primary: oklch(0.70 0.20 145);               /* Bright green */
+  --primary-foreground: oklch(0.15 0.10 145);    /* Very dark green */
+  --ring: oklch(0.70 0.20 145);                  /* Focus ring */
+
+  /* Accent (Verde oscuro para hover) */
+  --accent: oklch(0.28 0.10 145);                /* Dark green */
+  --accent-foreground: oklch(0.85 0.15 145);     /* Light green */
+
+  /* Semantic Colors */
+  --destructive: oklch(0.704 0.191 22.216);      /* Red */
+  --destructive-foreground: oklch(0.985 0 0);    /* White */
+}
 ```
 
 ### Color de Proyecto/Categoría
@@ -323,11 +363,31 @@ outline-offset: 2px;
 ### Buttons
 
 ```
-Primary:   [  Do Action  ]
-Secondary: ┌──────────────┐
-           │  Do Action   │
-           └──────────────┘
-Ghost:     Do Action
+Primary (filled):  [  Do Action  ]
+                   - bg-primary
+                   - hover: bg-primary/90
+
+Secondary:         ┌──────────────┐
+                   │  Do Action   │
+                   └──────────────┘
+                   - bg-secondary
+                   - hover: bg-secondary/80
+
+Outline:           ┌──────────────┐
+                   │  Do Action   │
+                   └──────────────┘
+                   - border + shadow-xs
+                   - hover: bg-accent
+
+Ghost:             Do Action
+                   - Transparent
+                   - hover: bg-muted (gray)
+
+Ghost (no hover):  Do Action
+                   - Transparent
+                   - No hover effect
+                   - text-muted-foreground
+                   - Uso: Navegación discreta
 
 - Height: 40px (spacing-10)
 - Padding: spacing-3 spacing-6
@@ -540,42 +600,39 @@ Shimmer effect (Optimistic UI)
 
 ### CSS Variables
 
-Todas las variables de diseño deben estar en [globals.css](../src/app/globals.css) usando CSS custom properties:
+Todas las variables de diseño deben estar en [globals.css](../src/app/globals.css) usando CSS custom properties en formato **OKLCH**:
 
 ```css
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    /* ... todas las variables */
-  }
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  /* ... mapeo de variables a clases Tailwind */
+}
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.141 0.005 285.823);
+  --primary: oklch(0.50 0.18 145);
+  --accent: oklch(0.96 0.06 145);
+  /* ... todas las variables */
+}
+
+.dark {
+  --background: oklch(0.141 0.005 285.823);
+  --primary: oklch(0.70 0.20 145);
+  /* ... valores dark mode */
 }
 ```
 
-### Tailwind Config
+### Tailwind v4
 
-Extender Tailwind con los valores del design system:
+El proyecto usa **Tailwind CSS v4** con configuración CSS-first:
 
-```js
-// tailwind.config.ts
-export default {
-  theme: {
-    extend: {
-      colors: {
-        border: "hsl(var(--border))",
-        background: "hsl(var(--background))",
-        // ...
-      },
-      borderRadius: {
-        lg: "var(--radius-lg)",
-        md: "var(--radius-md)",
-        sm: "var(--radius-sm)",
-      },
-      // ...
-    }
-  }
-}
-```
+- No hay `tailwind.config.js` tradicional
+- Configuración mediante `@theme inline` en CSS
+- CSS custom properties mapeadas a clases de Tailwind
+- Soporte nativo para OKLCH color space
 
 ### Componentes Reutilizables
 
