@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { useSidebarStore } from "@/stores/sidebar-store";
 import { useUpdateDay, daysKeys } from "@/hooks/use-days";
 import { DayItemActions } from "./day-item-actions";
+import { DayIconCalendar } from "./day-icon-calendar";
 import type { Day } from "@/types";
 
 interface DayItemProps {
@@ -114,12 +115,11 @@ export function DayItem({ day, isPinned = false, onDelete }: DayItemProps) {
           isSelected && "bg-accent"
         )}
       >
-        <div className={cn(
-          "w-2 h-2 rounded-full transition-colors",
-          isSelected
-            ? "bg-primary group-hover:bg-primary/70"
-            : "bg-muted-foreground"
-        )} />
+        <DayIconCalendar
+          date={day.date}
+          variant="collapsed"
+          isSelected={isSelected}
+        />
       </div>
     );
   }
@@ -171,6 +171,11 @@ export function DayItem({ day, isPinned = false, onDelete }: DayItemProps) {
         </>
       ) : (
         <>
+          <DayIconCalendar
+            date={day.date}
+            variant="expanded"
+            isSelected={isSelected}
+          />
           <div className="flex-1 min-w-0">
             <p className={cn(
               "text-sm truncate transition-colors",
