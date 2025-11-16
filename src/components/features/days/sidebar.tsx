@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   PanelLeft,
@@ -9,8 +10,11 @@ import {
   ChevronUp,
   Plus,
   FileText,
-  Calendar,
+  Calendar as CalendarIcon,
 } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useSidebarStore } from "@/stores/sidebar-store";
 import { useDays, useCreateDay } from "@/hooks/use-days";
@@ -24,12 +28,20 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger, PopoverArrow } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
 import type { Day } from "@/types";
 
 export function Sidebar() {
+  const router = useRouter();
   const [dayToDelete, setDayToDelete] = useState<Day | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [title, setTitle] = useState("");
 
   const isCollapsed = useSidebarStore((state) => state.isCollapsed);
   const toggleCollapse = useSidebarStore((state) => state.toggleCollapse);
@@ -72,9 +84,50 @@ export function Sidebar() {
     });
   };
 
-  const handleCreateDayWithDate = () => {
-    // TODO: Open date picker dialog
-    console.log("Open date picker");
+  const handlePopoverChange = (open: boolean) => {
+    setPopoverOpen(open);
+    if (open) {
+      setDropdownOpen(true);
+    }
+  };
+
+  const handleCreateSpecificDay = () => {
+    if (!selectedDate) {
+      toast.error("Por favor selecciona una fecha");
+      return;
+    }
+
+    createDay.mutate(
+      {
+        date: selectedDate,
+        title: title.trim() || undefined,
+      },
+      {
+        onSuccess: (newDay) => {
+          toast.success("Día creado exitosamente");
+          setPopoverOpen(false);
+          setDropdownOpen(false);
+          setSelectedDate(undefined);
+          setTitle("");
+          router.push(`/?day=${newDay.id}`);
+        },
+        onError: (error) => {
+          const errorMessage = error.message || "Error al crear el día";
+          if (errorMessage.includes("unique") || errorMessage.includes("duplicate")) {
+            toast.error("Ya existe un día para esta fecha");
+          } else {
+            toast.error(errorMessage);
+          }
+        },
+      }
+    );
+  };
+
+  const handleCancelCreate = () => {
+    setPopoverOpen(false);
+    setDropdownOpen(false);
+    setSelectedDate(undefined);
+    setTitle("");
   };
 
   if (isCollapsed) {
@@ -148,7 +201,17 @@ export function Sidebar() {
         </div>
 
         <div className="flex items-center gap-1">
-          <DropdownMenu>
+          <DropdownMenu
+            open={dropdownOpen}
+            onOpenChange={(open) => {
+              // Bloquear completamente el cierre si el popover está abierto
+              if (!open && popoverOpen) {
+                return; // No permitir que se cierre mientras el popover está abierto
+              }
+              setDropdownOpen(open);
+            }}
+            modal={false}
+          >
             <DropdownMenuTrigger asChild>
               <Button
                 variant="default"
@@ -164,10 +227,83 @@ export function Sidebar() {
                 <FileText className="w-4 h-4 mr-2" />
                 Día de hoy
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleCreateDayWithDate}>
-                <Calendar className="w-4 h-4 mr-2" />
-                Día específico
-              </DropdownMenuItem>
+              <Popover open={popoverOpen} onOpenChange={handlePopoverChange} modal={false}>
+                <PopoverTrigger asChild>
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                    <CalendarIcon className="w-4 h-4 mr-2" />
+                    Día específico
+                  </DropdownMenuItem>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-auto p-0"
+                  side="right"
+                  align="start"
+                  sideOffset={10}
+                  alignOffset={0}
+                  onInteractOutside={(e) => {
+                    // Prevenir que clicks en el dropdown cierren el popover
+                    const target = e.target as HTMLElement;
+                    if (target.closest('[role="menu"]')) {
+                      e.preventDefault();
+                    }
+                  }}
+                  onPointerDownOutside={(e) => {
+                    // Solo cerrar si se clickea fuera tanto del dropdown como del popover
+                    const target = e.target as HTMLElement;
+                    if (target.closest('[role="menu"]')) {
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  <PopoverArrow className="fill-white dark:fill-zinc-950 drop-shadow" width={16} height={8} />
+                  <div className="p-4 space-y-4">
+                    {/* Calendar */}
+                    <div className="flex justify-center">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        locale={es}
+                        className="rounded-md border"
+                      />
+                    </div>
+
+                    {/* Optional title input */}
+                    <div className="space-y-2">
+                      <label htmlFor="day-title" className="text-sm font-medium">
+                        Título (opcional)
+                      </label>
+                      <Input
+                        id="day-title"
+                        placeholder="Ej: Día productivo, Reunión importante..."
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        maxLength={100}
+                        disabled={createDay.isPending}
+                      />
+                    </div>
+
+                    {/* Buttons */}
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={handleCancelCreate}
+                        disabled={createDay.isPending}
+                        size="sm"
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        onClick={handleCreateSpecificDay}
+                        disabled={createDay.isPending || !selectedDate}
+                        size="sm"
+                      >
+                        {createDay.isPending ? "Creando..." : "Crear"}
+                      </Button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </DropdownMenuContent>
           </DropdownMenu>
 
