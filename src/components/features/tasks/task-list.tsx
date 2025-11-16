@@ -66,7 +66,7 @@ export function TaskList({ dayId }: TaskListProps) {
             // Render tasks with virtual inserted at virtualIndex
             <>
               {tasks.map((task, index) => (
-                <Fragment key={task.id}>
+                <Fragment key={task.clientId || task.id}>
                   {virtualIndex === index && (
                     <TaskVirtual
                       onCreateTask={handleCreate}

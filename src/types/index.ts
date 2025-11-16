@@ -18,7 +18,9 @@ export type DayWithTasks = Prisma.DayGetPayload<{
 }>;
 
 // Task types
-export type Task = Prisma.TaskGetPayload<object>;
+export type Task = Prisma.TaskGetPayload<object> & {
+  clientId?: string; // Client-side only, for stable React keys
+};
 export type TaskWithRelations = Prisma.TaskGetPayload<{
   include: {
     project: true;

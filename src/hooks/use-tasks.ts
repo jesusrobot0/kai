@@ -54,11 +54,15 @@ export function useCreateTask(dayId: string) {
         tasksKeys.byDay(dayId)
       );
 
+      // Generate stable clientId that won't change when temp ID becomes real ID
+      const clientId = `client-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
       // Optimistically update
       queryClient.setQueryData<Task[]>(tasksKeys.byDay(dayId), (old = []) => [
         ...old,
         {
           id: `temp-${Date.now()}`,
+          clientId, // ← Stable key that persists through backend confirmation
           ...newTask,
           completed: false,
           dayId,
@@ -69,7 +73,7 @@ export function useCreateTask(dayId: string) {
         } as Task,
       ]);
 
-      return { previousTasks };
+      return { previousTasks, clientId };
     },
     onError: (err, newTask, context) => {
       // Revert on error
@@ -78,8 +82,17 @@ export function useCreateTask(dayId: string) {
       }
       toast.error("Error al crear tarea");
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: tasksKeys.byDay(dayId) });
+    onSuccess: (data, variables, context) => {
+      // Replace temp task with real task, MAINTAINING clientId for key stability
+      queryClient.setQueryData<Task[]>(tasksKeys.byDay(dayId), (old = []) => {
+        if (!old) return [{ ...data, clientId: context.clientId }];
+
+        return old.map(task =>
+          task.clientId === context.clientId
+            ? { ...data, clientId: context.clientId } // Keep clientId
+            : task
+        );
+      });
     },
   });
 }
@@ -116,12 +129,14 @@ export function useUpdateTask() {
         queryKey: tasksKeys.all,
       });
 
-      // Optimistically update all matching queries
+      // Optimistically update all matching queries, PRESERVING clientId
       queryClient.setQueriesData<Task[]>(
         { queryKey: tasksKeys.all },
         (old = []) =>
           old.map((task) =>
-            task.id === id ? { ...task, ...updates } : task
+            task.id === id
+              ? { ...task, ...updates } // Keep existing clientId
+              : task
           )
       );
 
@@ -136,8 +151,17 @@ export function useUpdateTask() {
       }
       toast.error("Error al actualizar tarea");
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: tasksKeys.all });
+    onSuccess: (serverData, variables) => {
+      // Update all queries with server data, PRESERVING clientId
+      queryClient.setQueriesData<Task[]>(
+        { queryKey: tasksKeys.all },
+        (old = []) =>
+          old?.map((task) =>
+            task.id === variables.id
+              ? { ...serverData, clientId: task.clientId } // Preserve clientId!
+              : task
+          ) || []
+      );
     },
   });
 }
