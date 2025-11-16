@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -18,9 +19,11 @@ interface DeleteDayModalProps {
   day: Day | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  currentDayId?: string | null;
 }
 
-export function DeleteDayModal({ day, open, onOpenChange }: DeleteDayModalProps) {
+export function DeleteDayModal({ day, open, onOpenChange, currentDayId }: DeleteDayModalProps) {
+  const router = useRouter();
   const deleteDay = useDeleteDay();
 
   if (!day) return null;
@@ -28,9 +31,16 @@ export function DeleteDayModal({ day, open, onOpenChange }: DeleteDayModalProps)
   const displayTitle = day.title || format(new Date(day.date), "EEEE, d 'de' MMMM", { locale: es });
 
   const handleDelete = () => {
+    const isDeletingCurrentDay = currentDayId === day.id;
+
     deleteDay.mutate(day.id, {
       onSuccess: () => {
         onOpenChange(false);
+
+        // Si estamos viendo el día que acabamos de eliminar, navegar a home
+        if (isDeletingCurrentDay) {
+          router.push("/");
+        }
       },
     });
   };

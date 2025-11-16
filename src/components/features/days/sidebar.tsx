@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   PanelLeft,
@@ -36,6 +36,7 @@ import type { Day } from "@/types";
 
 export function Sidebar() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [dayToDelete, setDayToDelete] = useState<Day | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -50,6 +51,8 @@ export function Sidebar() {
 
   const { data: days = [], isLoading } = useDays();
   const createDay = useCreateDay();
+
+  const currentDayId = searchParams.get("day");
 
   const pinnedDays = useMemo(
     () =>
@@ -79,9 +82,36 @@ export function Sidebar() {
   };
 
   const handleCreateDay = () => {
-    createDay.mutate({
-      date: new Date(),
+    // Buscar si ya existe un día con la fecha de hoy
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const existingDay = days.find((day) => {
+      const dayDate = new Date(day.date);
+      dayDate.setHours(0, 0, 0, 0);
+      return dayDate.getTime() === today.getTime();
     });
+
+    if (existingDay) {
+      // Si ya existe, mostrar toast info y navegar
+      toast.info("El día de hoy ya existe, navegando...");
+      router.push(`/?day=${existingDay.id}`);
+      return;
+    }
+
+    // Si no existe, crear
+    createDay.mutate(
+      { date: new Date() },
+      {
+        onSuccess: (newDay) => {
+          toast.success("Día creado exitosamente");
+          router.push(`/?day=${newDay.id}`);
+        },
+        onError: (error) => {
+          toast.error("Error al crear el día");
+        },
+      }
+    );
   };
 
   const handlePopoverChange = (open: boolean) => {
@@ -97,6 +127,28 @@ export function Sidebar() {
       return;
     }
 
+    // Buscar si ya existe un día con la fecha seleccionada
+    const normalizedSelectedDate = new Date(selectedDate);
+    normalizedSelectedDate.setHours(0, 0, 0, 0);
+
+    const existingDay = days.find((day) => {
+      const dayDate = new Date(day.date);
+      dayDate.setHours(0, 0, 0, 0);
+      return dayDate.getTime() === normalizedSelectedDate.getTime();
+    });
+
+    if (existingDay) {
+      // Si ya existe, mostrar toast info, cerrar modal y navegar
+      toast.info("Este día ya existe, navegando...");
+      setPopoverOpen(false);
+      setDropdownOpen(false);
+      setSelectedDate(undefined);
+      setTitle("");
+      router.push(`/?day=${existingDay.id}`);
+      return;
+    }
+
+    // Si no existe, crear
     createDay.mutate(
       {
         date: selectedDate,
@@ -113,11 +165,7 @@ export function Sidebar() {
         },
         onError: (error) => {
           const errorMessage = error.message || "Error al crear el día";
-          if (errorMessage.includes("unique") || errorMessage.includes("duplicate")) {
-            toast.error("Ya existe un día para esta fecha");
-          } else {
-            toast.error(errorMessage);
-          }
+          toast.error(errorMessage);
         },
       }
     );
@@ -179,6 +227,7 @@ export function Sidebar() {
           day={dayToDelete}
           open={deleteModalOpen}
           onOpenChange={setDeleteModalOpen}
+          currentDayId={currentDayId}
         />
       </motion.aside>
     );
@@ -387,6 +436,13 @@ export function Sidebar() {
               <p className="text-xs mt-1">Crea tu primer día con el botón +</p>
             </div>
           )}
+
+          {!isLoading && days.length > 0 && unpinnedDays.length === 0 && (
+            <div className="text-center py-8 text-zinc-500 dark:text-zinc-400">
+              <p className="text-sm">Todos los días están anclados</p>
+              <p className="text-xs mt-1">Desancla algunos para verlos aquí</p>
+            </div>
+          )}
         </div>
       </ScrollArea>
 
@@ -394,6 +450,7 @@ export function Sidebar() {
         day={dayToDelete}
         open={deleteModalOpen}
         onOpenChange={setDeleteModalOpen}
+        currentDayId={currentDayId}
       />
     </motion.aside>
   );

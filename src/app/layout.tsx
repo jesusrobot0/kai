@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { QueryProvider } from "@/lib/query-provider";
 import { Sidebar } from "@/components/features/days/sidebar";
@@ -32,7 +33,9 @@ export default function RootLayout({
       >
         <QueryProvider>
           <div className="flex h-screen overflow-hidden">
-            <Sidebar />
+            <Suspense fallback={<div className="w-80 h-screen bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800" />}>
+              <Sidebar />
+            </Suspense>
             <main className="flex-1 overflow-auto">
               {children}
             </main>
