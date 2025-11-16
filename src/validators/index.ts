@@ -56,7 +56,7 @@ export const createTaskSchema = z.object({
 });
 
 export const updateTaskSchema = z.object({
-  title: z.string().min(1).optional(),
+  title: z.string().optional(), // Allow empty strings during editing
   completed: z.boolean().optional(),
   order: z.number().int().min(0).optional(),
   projectId: z.string().cuid().nullable().optional(),

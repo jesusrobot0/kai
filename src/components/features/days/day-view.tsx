@@ -5,6 +5,7 @@ import { Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useDay } from "@/hooks/use-days";
+import { TaskList } from "@/components/features/tasks/task-list";
 
 interface DayViewProps {
   dayId: string | null;
@@ -95,12 +96,8 @@ export function DayView({ dayId }: DayViewProps) {
           </p>
         </div>
 
-        {/* Content - Tasks will go here */}
-        <div className="py-6 px-6">
-          <p className="text-sm text-muted-foreground">
-            Las tareas aparecerán aquí próximamente...
-          </p>
-        </div>
+        {/* Task List */}
+        <TaskList dayId={dayId} />
       </motion.div>
     </AnimatePresence>
   );
