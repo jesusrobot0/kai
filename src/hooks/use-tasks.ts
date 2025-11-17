@@ -57,10 +57,9 @@ export function useCreateTask(dayId: string) {
       // Generate stable clientId that won't change when temp ID becomes real ID
       const clientId = `client-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
-      // Optimistically update
-      queryClient.setQueryData<Task[]>(tasksKeys.byDay(dayId), (old = []) => [
-        ...old,
-        {
+      // Optimistically update - insert at correct position based on order value
+      queryClient.setQueryData<Task[]>(tasksKeys.byDay(dayId), (old = []) => {
+        const newTaskObj = {
           id: `temp-${Date.now()}`,
           clientId, // ← Stable key that persists through backend confirmation
           ...newTask,
@@ -70,8 +69,18 @@ export function useCreateTask(dayId: string) {
           projectId: null,
           createdAt: new Date(),
           updatedAt: new Date(),
-        } as Task,
-      ]);
+        } as Task;
+
+        // Find the correct insertion index based on order value
+        // Insert after all tasks with order <= newTask.order
+        const insertIndex = old.findIndex(task => task.order > newTask.order);
+        const finalIndex = insertIndex === -1 ? old.length : insertIndex;
+
+        // Insert at the calculated position
+        const newArray = [...old];
+        newArray.splice(finalIndex, 0, newTaskObj);
+        return newArray;
+      });
 
       return { previousTasks, clientId };
     },

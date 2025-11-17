@@ -6,6 +6,41 @@ import { useUpdateTask, tasksKeys } from "./use-tasks";
 import type { Task } from "@/types";
 import type { DragEndEvent } from "@dnd-kit/core";
 
+// Spacing constant for fractional ordering
+const ORDER_SPACING = 1000;
+
+/**
+ * Calculate new order value for a moved task based on its neighbors
+ * Uses fractional ordering to avoid updating all tasks
+ */
+function calculateNewOrder(reorderedTasks: Task[], movedTaskIndex: number): number {
+  const taskCount = reorderedTasks.length;
+
+  // Only task in the list
+  if (taskCount === 1) {
+    return ORDER_SPACING;
+  }
+
+  // Moved to beginning
+  if (movedTaskIndex === 0) {
+    return reorderedTasks[1].order - ORDER_SPACING;
+  }
+
+  // Moved to end
+  if (movedTaskIndex === taskCount - 1) {
+    return reorderedTasks[taskCount - 2].order + ORDER_SPACING;
+  }
+
+  // Moved to middle - calculate midpoint between neighbors
+  const before = reorderedTasks[movedTaskIndex - 1].order;
+  const after = reorderedTasks[movedTaskIndex + 1].order;
+
+  // Use precise midpoint (allows decimals for tight spaces)
+  const midpoint = (before + after) / 2;
+
+  return midpoint;
+}
+
 export function useTaskReorder(tasks: Task[], dayId: string) {
   const queryClient = useQueryClient();
   const updateTask = useUpdateTask();
@@ -32,20 +67,22 @@ export function useTaskReorder(tasks: Task[], dayId: string) {
 
     // Reorder array
     const reorderedTasks = arrayMove(tasks, oldIndex, newIndex);
+    const movedTask = reorderedTasks[newIndex];
 
-    // Optimistically update UI
-    queryClient.setQueryData<Task[]>(
-      tasksKeys.byDay(dayId),
-      reorderedTasks
+    // Calculate new order for the moved task using fractional ordering
+    const newOrder = calculateNewOrder(reorderedTasks, newIndex);
+
+    // Update the moved task's order in the reordered array
+    const updatedTasks = reorderedTasks.map((task, index) =>
+      index === newIndex ? { ...task, order: newOrder } : task
     );
 
-    // Batch update orders in parallel
+    // Optimistically update UI
+    queryClient.setQueryData<Task[]>(tasksKeys.byDay(dayId), updatedTasks);
+
+    // Update only the moved task (1 HTTP request instead of N)
     try {
-      await Promise.all(
-        reorderedTasks.map((task, index) =>
-          updateTask.mutateAsync({ id: task.id, order: index })
-        )
-      );
+      await updateTask.mutateAsync({ id: movedTask.id, order: newOrder });
     } catch (error) {
       // Revert on error
       queryClient.setQueryData(tasksKeys.byDay(dayId), tasks);
